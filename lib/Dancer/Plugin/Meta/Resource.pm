@@ -9,12 +9,10 @@ use Dancer qw( :script );
 sub META { die 'Must implement Resource::META';}
 
 
-#sub before {}
+sub before_process { }
 
 sub process { die 'Must implement Resource::process';}
 
 #sub after {}
-
-
 1;
 

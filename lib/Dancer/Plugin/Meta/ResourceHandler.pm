@@ -4,6 +4,8 @@ use strict;
 use warnings;
 
 use Dancer qw(:script);
+use Dancer::Plugin::Meta::Context;
+
 use Data::Dumper;
 
 use Module::Pluggable::Object;
@@ -43,14 +45,28 @@ sub register_routes {
         info sprintf('%s %s => %s', uc $verb, prefix.$path, $resource );            
         # register the call for the verb and path pattern 
         Dancer::App->current->registry->universal_add($verb, $path , sub {
-                          
+                                         
+            my $envelope = {}; 
             # validate the input
                           
             # before resource hook
-            #$resource->before(@_);
+            $resource->before_process(@_);
+#
+            # quit if there were any errors
+            if(@{errors()}){
+                $envelope->{errors} = errors;                
+                status (400);
+                return $envelope;
+            }
 
             # call the handler
             my ($status, $response) = $resource->process(@_);
+
+            # wrap the response in an envelope
+            $envelope->{response} = $response;
+
+            # collect warnings and errors
+                       
 
             # after resource hook
             #$resource->after(@_);
@@ -59,7 +75,7 @@ sub register_routes {
                             
             # output the result
             status $status;
-            return $response;
+            return $envelope;
         }); 
     }
            
